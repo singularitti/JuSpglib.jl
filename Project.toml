@@ -1,6 +1,8 @@
-authors = ["Qi Zhang <singularitti@outlook.com>"]
 name = "JuSpglib"
 uuid = "34d185ec-00dd-11e9-1299-3f75a6b8bf95"
+authors = ["Qi Zhang <singularitti@outlook.com>"]
 version = "0.1.0"
 
 [deps]
+BinDeps = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
+CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
