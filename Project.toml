@@ -1,0 +1,6 @@
+authors = ["Qi Zhang <singularitti@outlook.com>"]
+name = "JuSpglib"
+uuid = "34d185ec-00dd-11e9-1299-3f75a6b8bf95"
+version = "0.1.0"
+
+[deps]
