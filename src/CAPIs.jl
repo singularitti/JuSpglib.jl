@@ -39,6 +39,8 @@ function get_c_cell(lattice::AbstractMatrix, positions::AbstractMatrix, types::A
     return (clattice, cpositions, ctypes)
 end
 
+cchars_to_string(s::Vector{Cchar}) = map(Char, s) |> join |> x -> split(x, "\0") |> first
+
 function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
     size(positions, 1) != 3 && error("Operations in 3D space is supported here!")
@@ -67,7 +69,7 @@ function get_international(lattice::AbstractMatrix, positions::AbstractMatrix, t
 
     numops == 0 && error("Could not determine the international symbol!")
 
-    join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
+    cchars_to_string(result)
 end
 
 function get_schoenflies(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
@@ -80,7 +82,7 @@ function get_schoenflies(lattice::AbstractMatrix, positions::AbstractMatrix, typ
 
     numops == 0 && error("Could not determine the Schoenflies symbol!")
 
-    join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
+    cchars_to_string(result)
 end
 
 end
