@@ -32,6 +32,13 @@ This returns version number of spglib.
 """
 const spglib_version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
 
+function get_c_cell(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector)::Tuple{Matrix{Cdouble}, Matrix{Cdouble}, Vector{Cint}}
+    clattice = convert(Matrix{Cdouble}, lattice)
+    cpositions = convert(Matrix{Cdouble}, positions)
+    ctypes = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
+    return (clattice, cpositions, ctypes)
+end
+
 function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
     size(positions, 1) != 3 && error("Operations in 3D space is supported here!")
@@ -40,9 +47,7 @@ function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types:
     rotations = Array{Cint}(undef, 3, 3, maxsize)
     translations = Array{Cdouble}(undef, 3, maxsize)
 
-    type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
-    clattice = convert(Matrix{Cdouble}, lattice)
-    cpositions = convert(Matrix{Cdouble}, positions)
+    clattice, cpositions, type_indices = get_c_cell(lattice, positions, types)
     numops = ccall((:spg_get_symmetry, spglib), Cint,
         (Ptr{Cint}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
         rotations, translations, maxsize, clattice, cpositions, type_indices, length(type_indices), symprec)
@@ -55,9 +60,7 @@ end
 function get_international(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
-    type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
-    clattice = convert(Matrix{Cdouble}, lattice)
-    cpositions = convert(Matrix{Cdouble}, positions)
+    clattice, cpositions, type_indices = get_c_cell(lattice, positions, types)
     numops = ccall((:spg_get_international, spglib), Cint,
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
         result, clattice, cpositions, type_indices, length(type_indices), symprec)
@@ -70,9 +73,7 @@ end
 function get_schoenflies(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
-    type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
-    clattice = convert(Matrix{Cdouble}, lattice)
-    cpositions = convert(Matrix{Cdouble}, positions)
+    clattice, cpositions, type_indices = get_c_cell(lattice, positions, types)
     numops = ccall((:spg_get_schoenflies, spglib), Cint,
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
         result, clattice, cpositions, type_indices, length(type_indices), symprec)
