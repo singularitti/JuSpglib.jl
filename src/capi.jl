@@ -12,6 +12,7 @@ julia>
 module CAPI
 
 using CoordinateTransformations
+using DataStructures: counter
 
 export symmetry_operations, international_symbol, schoenflies_symbol
 
@@ -41,18 +42,15 @@ function symmetry_operations(lattice::AbstractMatrix,
         error("Operating in 3D here")
     end
     maxsize::Integer = 52
-    rotations = Array{Cint}((3, 3, maxsize))
-    translations = Array{Cdouble}((3, maxsize))
+    rotations = Array{Cint}(undef, 3, 3, maxsize)
+    translations = Array{Cdouble}(undef, 3, maxsize)
 
-    unique_types = unique(types)
-    type_indices = Cint[findfirst(unique_types, u) for u in types]
+    type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
     clattice = convert(Matrix{Cdouble}, lattice)
     cpositions = convert(Matrix{Cdouble}, positions)
-    numops = ccall((:spg_get_symmetry, spglib),
-      Cint,
-      (Ptr{Cint}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint},
-       Cint, Cdouble),
-    rotations, translations, maxsize, clattice, cpositions, type_indices, length(type_indices), symprec)
+    numops = ccall((:spg_get_symmetry, spglib), Cint,
+        (Ptr{Cint}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
+        rotations, translations, maxsize, clattice, cpositions, type_indices, length(type_indices), symprec)
     if numops == 0
         error("Could not determine symmetries")
     end
@@ -65,20 +63,17 @@ function international_symbol(lattice::AbstractMatrix,
                               symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
-    unique_types = unique(types)
-    type_indices = Cint[findfirst(unique_types, u) for u in types]
+    type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
     clattice = convert(Matrix{Cdouble}, lattice)
     cpositions = convert(Matrix{Cdouble}, positions)
-    numops = ccall((:spg_get_international, spglib),
-      Cint,
-      (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint},
-       Cint, Cdouble),
-    result, clattice, cpositions, type_indices, length(type_indices), symprec)
+    numops = ccall((:spg_get_international, spglib), Cint,
+        (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
+        result, clattice, cpositions, type_indices, length(type_indices), symprec)
 
     if numops == 0
         error("Could not determine internation symbol")
     end
-    join(convert(Array{Char}, result[1:findfirst(result, 0) - 1]))
+    join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
 end
 
 function schoenflies_symbol(lattice::AbstractMatrix,
@@ -87,8 +82,7 @@ function schoenflies_symbol(lattice::AbstractMatrix,
                            symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
-    unique_types = unique(types)
-    type_indices = Cint[findfirst(unique_types, u) for u in types]
+    type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
     clattice = convert(Matrix{Cdouble}, lattice)
     cpositions = convert(Matrix{Cdouble}, positions)
     numops = ccall((:spg_get_schoenflies, spglib),
@@ -100,7 +94,7 @@ function schoenflies_symbol(lattice::AbstractMatrix,
     if numops == 0
         error("Could not determine Schoenflies symbol")
     end
-    join(convert(Array{Char}, result[1:findfirst(result, 0) - 1]))
+    join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
 end
 
 end
