@@ -49,11 +49,11 @@ function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types:
     rotations = Array{Cint}(undef, 3, 3, maxsize)
     translations = Array{Cdouble}(undef, 3, maxsize)
 
-    clattice, cpositions, type_indices = get_c_cell(lattice, positions, types)
+    clattice, cpositions, ctypes = get_c_cell(lattice, positions, types)
 
     numops = ccall((:spg_get_symmetry, spglib), Cint,
         (Ptr{Cint}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
-        rotations, translations, maxsize, clattice, cpositions, type_indices, length(type_indices), symprec)
+        rotations, translations, maxsize, clattice, cpositions, ctypes, length(ctypes), symprec)
     numops == 0 && error("Could not determine symmetries!")
 
     [AffineMap(transpose(rotations[:, :, i]), translations[:, i]) for i in 1:numops]
@@ -62,11 +62,11 @@ end
 function get_international(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
-    clattice, cpositions, type_indices = get_c_cell(lattice, positions, types)
+    clattice, cpositions, ctypes = get_c_cell(lattice, positions, types)
 
     numops = ccall((:spg_get_international, spglib), Cint,
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
-        result, clattice, cpositions, type_indices, length(type_indices), symprec)
+        result, clattice, cpositions, ctypes, length(ctypes), symprec)
     numops == 0 && error("Could not determine the international symbol!")
 
     cchars_to_string(result)
@@ -75,11 +75,11 @@ end
 function get_schoenflies(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
-    clattice, cpositions, type_indices = get_c_cell(lattice, positions, types)
+    clattice, cpositions, ctypes = get_c_cell(lattice, positions, types)
 
     numops = ccall((:spg_get_schoenflies, spglib), Cint,
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
-        result, clattice, cpositions, type_indices, length(type_indices), symprec)
+        result, clattice, cpositions, ctypes, length(ctypes), symprec)
     numops == 0 && error("Could not determine the Schoenflies symbol!")
 
     cchars_to_string(result)
