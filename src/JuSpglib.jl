@@ -1,5 +1,9 @@
 module JuSpglib
 
-include("capis.jl")
+using Reexport
+
+include("../deps/build.jl")
+include("CAPIs.jl")
+@reexport using .CAPIs
 
 end # module

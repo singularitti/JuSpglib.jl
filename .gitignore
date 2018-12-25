@@ -14,7 +14,8 @@ deps/deps.jl
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -112,6 +113,7 @@ $RECYCLE.BIN/
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
+.idea/*.xml
 
 # Gradle
 .idea/**/gradle.xml
@@ -122,8 +124,8 @@ $RECYCLE.BIN/
 # since they will be recreated, and may cause churn.  Uncomment if using
 # auto-import.
 # .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
+.idea/*.iml
+.idea/modules
 
 # CMake
 cmake-build-*/
