@@ -32,12 +32,9 @@ const version = VersionNumber(ccall((:spg_get_major_version, spglib), Cint, ()),
 )
 
 function symmetry_operations(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
-    if size(positions, 2) != length(types)
-        error("Number of positions and types do not match")
-    end
-    if size(positions, 1) != 3
-        error("Operating in 3D here")
-    end
+    size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
+    size(positions, 1) != 3 && error("Operations in 3D space is supported here!")
+
     maxsize::Integer = 52
     rotations = Array{Cint}(undef, 3, 3, maxsize)
     translations = Array{Cdouble}(undef, 3, maxsize)
