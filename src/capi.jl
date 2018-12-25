@@ -14,7 +14,7 @@ module CAPI
 using CoordinateTransformations
 using DataStructures: counter
 
-export symmetry_operations, international_symbol, schoenflies_symbol
+export spglib_version, symmetry_operations, international_symbol, schoenflies_symbol
 
 # Load library after build
 if isfile(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
@@ -28,9 +28,9 @@ macro lazy_version(cfuncname)
 end
 
 """
-version number of the underlying C-API
+This returns version number of spglib.
 """
-const version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
+const spglib_version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
 
 function symmetry_operations(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
