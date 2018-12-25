@@ -45,9 +45,9 @@ function symmetry_operations(lattice::AbstractMatrix, positions::AbstractMatrix,
     numops = ccall((:spg_get_symmetry, spglib), Cint,
         (Ptr{Cint}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
         rotations, translations, maxsize, clattice, cpositions, type_indices, length(type_indices), symprec)
-    if numops == 0
-        error("Could not determine symmetries")
-    end
+
+    numops == 0 && error("Could not determine symmetries!")
+
     [AffineMap(transpose(rotations[:, :, i]), translations[:, i]) for i in 1:numops]
 end
 
@@ -61,9 +61,8 @@ function international_symbol(lattice::AbstractMatrix, positions::AbstractMatrix
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
         result, clattice, cpositions, type_indices, length(type_indices), symprec)
 
-    if numops == 0
-        error("Could not determine internation symbol")
-    end
+    numops == 0 && error("Could not determine the international symbol!")
+
     join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
 end
 
@@ -77,9 +76,8 @@ function schoenflies_symbol(lattice::AbstractMatrix, positions::AbstractMatrix, 
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
         result, clattice, cpositions, type_indices, length(type_indices), symprec)
 
-    if numops == 0
-        error("Could not determine Schoenflies symbol")
-    end
+    numops == 0 && error("Could not determine the Schoenflies symbol!")
+
     join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
 end
 
