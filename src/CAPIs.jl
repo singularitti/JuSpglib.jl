@@ -35,7 +35,7 @@ const spglib_version = VersionNumber(@lazy_version(:spg_get_major_version), @laz
 function get_c_cell(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector)::Tuple{Matrix{Cdouble}, Matrix{Cdouble}, Vector{Cint}}
     clattice = convert(Matrix{Cdouble}, lattice)
     cpositions = convert(Matrix{Cdouble}, positions)
-    ctypes = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
+    ctypes = convert(Vector{Cint}, [repeat([i], v) for (i, v) in (enumerate ∘ values ∘ counter)(types)] |> Iterators.flatten |> collect)
     return (clattice, cpositions, ctypes)
 end
 
@@ -45,7 +45,7 @@ function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types:
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
     size(positions, 1) != 3 && error("Operations in 3D space is supported here!")
 
-    maxsize::Integer = 52
+    maxsize = 52
     rotations = Array{Cint}(undef, 3, 3, maxsize)
     translations = Array{Cdouble}(undef, 3, maxsize)
 
