@@ -19,7 +19,7 @@ export symmetry_operations, international_symbol, schoenflies_symbol
 if isfile(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
     include(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
 else
-    error("Spglib not properly installed. Please run Pkg.build(\"Spglib\")")
+    error("Spglib not properly installed. Please run Pkg.build(\"JuSpglib\")")
 end
 
 """
@@ -40,7 +40,7 @@ function symmetry_operations(lattice::AbstractMatrix,
     if size(positions, 1) != 3
         error("Operating in 3D here")
     end
-    const maxsize::Integer = 52
+    maxsize::Integer = 52
     rotations = Array{Cint}((3, 3, maxsize))
     translations = Array{Cdouble}((3, maxsize))
 
