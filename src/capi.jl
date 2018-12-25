@@ -23,13 +23,14 @@ else
     error("Spglib not properly installed. Please run Pkg.build(\"JuSpglib\")")
 end
 
+macro lazy_version(cfuncname)
+    return :(ccall(($cfuncname, spglib), Cint, ()))
+end
+
 """
 version number of the underlying C-API
 """
-const version = VersionNumber(ccall((:spg_get_major_version, spglib), Cint, ()),
-  ccall((:spg_get_minor_version, spglib), Cint, ()),
-  ccall((:spg_get_micro_version, spglib), Cint, ()),
-)
+const version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
 
 function symmetry_operations(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
