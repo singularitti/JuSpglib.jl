@@ -1,5 +1,5 @@
 """
-# module CAPI
+# module CAPIs
 
 
 
@@ -9,7 +9,7 @@
 julia>
 ```
 """
-module CAPI
+module CAPIs
 
 using CoordinateTransformations
 using DataStructures: counter
