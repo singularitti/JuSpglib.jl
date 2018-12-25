@@ -14,7 +14,7 @@ module CAPI
 using CoordinateTransformations
 using DataStructures: counter
 
-export spglib_version, symmetry_operations, international_symbol, schoenflies_symbol
+export spglib_version, get_symmetry, get_international, get_schoenflies
 
 # Load library after build
 if isfile(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
@@ -32,7 +32,7 @@ This returns version number of spglib.
 """
 const spglib_version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
 
-function symmetry_operations(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
+function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
     size(positions, 1) != 3 && error("Operations in 3D space is supported here!")
 
@@ -52,7 +52,7 @@ function symmetry_operations(lattice::AbstractMatrix, positions::AbstractMatrix,
     [AffineMap(transpose(rotations[:, :, i]), translations[:, i]) for i in 1:numops]
 end
 
-function international_symbol(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
+function get_international(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
     type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
@@ -67,7 +67,7 @@ function international_symbol(lattice::AbstractMatrix, positions::AbstractMatrix
     join(convert(Array{Char}, result[1:findfirst(iszero, result) - 1]))
 end
 
-function schoenflies_symbol(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
+function get_schoenflies(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
     result = zeros(Cchar, 11)
 
     type_indices = convert(Vector{Cint}, (collect ∘ values ∘ counter)(types))
