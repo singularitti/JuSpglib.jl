@@ -13,12 +13,10 @@ module DataStructure
 
 export Cell
 
-struct Cell{T <: AbstractFloat}
-    lattice::AbstractMatrix{T}
-    positions::AbstractMatrix{T}
-    numbers::AbstractVector{T}
+struct Cell
+    lattice::AbstractMatrix
+    positions::AbstractMatrix
+    numbers::AbstractVector
 end
-
-Cell(lattice::AbstractMatrix{T}, positions::AbstractMatrix{T}, numbers::AbstractVector{T}) where {T} = Cell{T}(lattice, positions, numbers)
 
 end
