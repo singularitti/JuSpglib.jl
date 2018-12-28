@@ -14,23 +14,7 @@ module CAPIs
 using CoordinateTransformations
 using DataStructures: counter
 
-export spglib_version, get_symmetry, get_international, get_schoenflies
-
-# Load library after build
-if isfile(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
-    include(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
-else
-    error("Spglib not properly installed. Please run Pkg.build(\"JuSpglib\")")
-end
-
-macro lazy_version(cfuncname)
-    return :(ccall(($cfuncname, spglib), Cint, ()))
-end
-
-"""
-This returns version number of spglib.
-"""
-const spglib_version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
+export get_symmetry, get_international, get_schoenflies
 
 function get_ccell(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector)::Tuple{Matrix{Cdouble}, Matrix{Cdouble}, Vector{Cint}}
     clattice = convert(Matrix{Cdouble}, lattice)
