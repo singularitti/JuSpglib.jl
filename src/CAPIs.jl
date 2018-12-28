@@ -14,18 +14,27 @@ module CAPIs
 using CoordinateTransformations
 using DataStructures: counter
 
+using JuSpglib.DataStructure: Cell
+
 export get_symmetry, get_international, get_schoenflies
 
-function get_ccell(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector)::Tuple{Matrix{Cdouble}, Matrix{Cdouble}, Vector{Cint}}
+macro getfields(obj, fields...)
+    return [getfield(obj, name) for name in fields]
+end
+
+function get_ccell(cell::Cell)::Cell
+    lattice, positions, types = @getfields cell :lattice :positions :numbers
     clattice = convert(Matrix{Cdouble}, lattice)
     cpositions = convert(Matrix{Cdouble}, positions)
     ctypes = convert(Vector{Cint}, [repeat([i], v) for (i, v) in (enumerate ∘ values ∘ counter)(types)] |> Iterators.flatten |> collect)
-    return (clattice, cpositions, ctypes)
+    return Cell(clattice, cpositions, ctypes)
 end
 
 cchars_to_string(s::Vector{Cchar}) = map(Char, s) |> join |> x -> split(x, "\0") |> first
 
-function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
+function get_symmetry(cell::Cell; symprec::Real = 1e-8)
+    lattice, positions, types = @getfields cell :lattice :positions :numbers
+
     size(positions, 2) != length(types) && throw(DimensionMismatch("The number of positions and atomic types do not match!"))
     size(positions, 1) != 3 && error("Operations in 3D space is supported here!")
 
@@ -33,7 +42,8 @@ function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types:
     rotations = Array{Cint}(undef, 3, 3, maxsize)
     translations = Array{Cdouble}(undef, 3, maxsize)
 
-    clattice, cpositions, ctypes = get_ccell(lattice, positions, types)
+    ccell = get_ccell(lattice, positions, types)
+    clattice, cpositions, ctypes = @getfields :lattice :positions :numbers
 
     numops = ccall((:spg_get_symmetry, spglib), Cint,
         (Ptr{Cint}, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
@@ -43,10 +53,13 @@ function get_symmetry(lattice::AbstractMatrix, positions::AbstractMatrix, types:
     [AffineMap(transpose(rotations[:, :, i]), translations[:, i]) for i in 1:numops]
 end
 
-function get_international(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
+function get_international(cell::Cell; symprec::Real = 1e-8)
+    lattice, positions, types = @getfields cell :lattice :positions :numbers
+
     result = zeros(Cchar, 11)
 
-    clattice, cpositions, ctypes = get_ccell(lattice, positions, types)
+    ccell = get_ccell(lattice, positions, types)
+    clattice, cpositions, ctypes = @getfields :lattice :positions :numbers
 
     numops = ccall((:spg_get_international, spglib), Cint,
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
@@ -56,10 +69,13 @@ function get_international(lattice::AbstractMatrix, positions::AbstractMatrix, t
     cchars_to_string(result)
 end
 
-function get_schoenflies(lattice::AbstractMatrix, positions::AbstractMatrix, types::AbstractVector; symprec::Real = 1e-8)
+function get_schoenflies(cell::Cell; symprec::Real = 1e-8)
+    lattice, positions, types = @getfields cell :lattice :positions :numbers
+
     result = zeros(Cchar, 11)
 
-    clattice, cpositions, ctypes = get_ccell(lattice, positions, types)
+    ccell = get_ccell(lattice, positions, types)
+    clattice, cpositions, ctypes = @getfields :lattice :positions :numbers
 
     numops = ccall((:spg_get_schoenflies, spglib), Cint,
         (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cdouble),
