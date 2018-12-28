@@ -22,6 +22,9 @@ This returns version number of spglib.
 """
 const spglib_version = VersionNumber(@lazy_version(:spg_get_major_version), @lazy_version(:spg_get_minor_version), @lazy_version(:spg_get_micro_version))
 
+include("DataStructure.jl")
+@reexport using .DataStructure
+
 include("CAPIs.jl")
 @reexport using .CAPIs
 
