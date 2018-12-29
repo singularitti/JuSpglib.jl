@@ -18,6 +18,8 @@ using JuSpglib.DataStructure: Cell
 
 export get_symmetry, get_international, get_schoenflies
 
+include(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
+
 function getfields(obj, fields...)
     Tuple(getfield(obj, name) for name in fields)
 end
