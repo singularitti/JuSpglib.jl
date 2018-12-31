@@ -13,11 +13,13 @@ module CAPIs
 
 using CoordinateTransformations
 using DataStructures: counter
+using Setfield: @set
 
 using JuSpglib.DataStructure: Cell
 
 export get_symmetry, get_international, get_schoenflies,
-    standardize_cell, find_primitive, refine_cell
+    standardize_cell, find_primitive, refine_cell,
+    niggli_reduce, delaunay_reduce
 
 include(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
 
@@ -98,5 +100,25 @@ end
 find_primitive(cell::Cell; symprec::Real = 1e-5) = standardize_cell(cell; to_primitive = true, no_idealize = false, symprec = symprec)
 
 refine_cell(cell::Cell; symprec::Real = 1e-5) = standardize_cell(cell; to_primitive = false, no_idealize = false, symprec = symprec)
+
+function niggli_reduce(cell::Cell, symprec::Real = 1e-5)
+    ccell = get_ccell(cell)
+    clattice = getfield(ccell, :lattice)
+
+    ret = ccall((:spg_niggli_reduce, spglib), Cint, (Ptr{Cdouble}, Cdouble), clattice, symprec)
+    ret == 0 && error("Niggli reduce failed!")
+
+    @set cell.lattice = clattice
+end
+
+function delaunay_reduce(cell::Cell, symprec::Real = 1e-5)
+    ccell = get_ccell(cell)
+    clattice = getfield(ccell, :lattice)
+
+    ret = ccall((:spg_niggli_reduce, spglib), Cint, (Ptr{Cdouble}, Cdouble), clattice, symprec)
+    ret == 0 && error("Delaunay reduce failed!")
+
+    @set cell.lattice = clattice
+end
 
 end
