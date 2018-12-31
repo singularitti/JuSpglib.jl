@@ -16,7 +16,8 @@ using DataStructures: counter
 
 using JuSpglib.DataStructure: Cell
 
-export get_symmetry, get_international, get_schoenflies
+export get_symmetry, get_international, get_schoenflies,
+    standardize_cell, find_primitive, refine_cell
 
 include(joinpath(dirname(@__FILE__), "..", "deps", "deps.jl"))
 
@@ -80,5 +81,22 @@ function get_schoenflies(cell::Cell; symprec::Real = 1e-8)
 
     cchars_to_string(result)
 end
+
+function standardize_cell(cell::Cell, to_primitive::Bool = false, no_idealize::Bool = false, symprec::Real = 1e-5)
+    ccell = get_ccell(cell)
+    clattice, cpositions, cnumbers = getfields(ccell, :lattice, :positions, :numbers)
+    to_primitive, no_idealize = map(x -> convert(Cint, x), (to_primitive, no_idealize))
+
+    atoms_amount = ccall((:spg_standardize_cell, spglib), Cint,
+        (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cint, Cint, Cdouble),
+        clattice, cpositions, cnumbers, length(cnumbers), to_primitive, no_idealize, symprec)
+    atoms_amount == 0 && error("Standardizing cell failed!")
+
+    Cell(clattice, cpositions, cnumbers)
+end
+
+find_primitive(cell::Cell; symprec::Real = 1e-5) = standardize_cell(cell; to_primitive = true, no_idealize = false, symprec = symprec)
+
+refine_cell(cell::Cell; symprec::Real = 1e-5) = standardize_cell(cell; to_primitive = false, no_idealize = false, symprec = symprec)
 
 end
